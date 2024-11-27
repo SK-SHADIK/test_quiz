@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>গো বাংলা কুইজ</title>
+  <style>
+    /* Internal CSS for wonderful design */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .quiz-container {
+      width: 90%;
+      max-width: 500px;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.2em;
+      color: #333;
+    }
+
+    .question {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #444;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f5f5f5;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .option:hover {
+      background: #efefef;
+    }
+
+    .selected {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .btn-container {
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    button:disabled {
+      background: #ddd;
+      cursor: not-allowed;
+    }
+
+    .result {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #4caf50;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <div class="quiz-header">
+      <div>কুইজ</div>
+      <div id="timer">১৫ সেকেন্ড</div>
+    </div>
+    <div class="question" id="question">প্রশ্ন এখানে লোড হবে</div>
+    <div class="options" id="options"></div>
+    <div class="btn-container">
+      <button id="next-btn">পরবর্তী</button>
+      <button id="finish-btn" style="display: none;">শেষ করুন</button>
+    </div>
+    <div class="result" id="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    // Quiz data array
+    const quizData = [
+      { question: "বাংলাদেশের জাতীয় ফুল কি?", options: ["গোলাপ", "শাপলা", "জবা", "টিউলিপ"], answer: 1, marks: 5 },
+      { question: "বাংলাদেশের জাতীয় সংগীত কে লিখেছেন?", options: ["কাজী নজরুল ইসলাম", "জীবনানন্দ দাশ", "রবীন্দ্রনাথ ঠাকুর", "লালন ফকির"], answer: 2, marks: 10 },
+      { question: "বাংলাদেশের রাজধানী কোনটি?", options: ["ঢাকা", "চট্টগ্রাম", "খুলনা", "সিলেট"], answer: 0, marks: 5 },
+      { question: "বাংলাদেশের রাজধানী কোনটি?", options: ["ঢাকা", "চট্টগ্রাম", "খুলনা", "সিলেট"], answer: 0, marks: 5 },
+      { question: "বাংলাদেশের রাজধানী কোনটি?", options: ["ঢাকা", "চট্টগ্রাম", "খুলনা", "সিলেট"], answer: 0, marks: 5 },
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    const timerDuration = 15; // Default timer duration in seconds
+
+    const questionElement = document.getElementById("question");
+    const optionsElement = document.getElementById("options");
+    const timerElement = document.getElementById("timer");
+    const nextButton = document.getElementById("next-btn");
+    const finishButton = document.getElementById("finish-btn");
+    const resultElement = document.getElementById("result");
+
+    // Load question
+    function loadQuestion() {
+      const data = quizData[currentQuestion];
+      questionElement.textContent = data.question;
+      optionsElement.innerHTML = "";
+
+      data.options.forEach((option, index) => {
+        const optionElement = document.createElement("div");
+        optionElement.textContent = option;
+        optionElement.classList.add("option");
+        optionElement.onclick = () => selectOption(index);
+        optionsElement.appendChild(optionElement);
+      });
+
+      startTimer();
+    }
+
+    // Timer
+    function startTimer() {
+      clearInterval(timer);
+      let time = timerDuration;
+      timerElement.textContent = `${time} সেকেন্ড`;
+      timer = setInterval(() => {
+        time--;
+        timerElement.textContent = `${time} সেকেন্ড`;
+        if (time <= 0) {
+          clearInterval(timer);
+          handleNext();
+        }
+      }, 1000);
+    }
+
+    // Select option
+    function selectOption(index) {
+      const options = document.querySelectorAll(".option");
+      options.forEach((opt, i) => {
+        opt.classList.toggle("selected", i === index);
+      });
+    }
+
+    // Handle next button
+    function handleNext() {
+      const selectedOption = document.querySelector(".selected");
+      if (selectedOption) {
+        const selectedIndex = Array.from(optionsElement.children).indexOf(selectedOption);
+        if (selectedIndex === quizData[currentQuestion].answer) {
+          score += quizData[currentQuestion].marks;
+        }
+      }
+
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    // Show result
+    function showResult() {
+      questionElement.style.display = "none";
+      optionsElement.style.display = "none";
+      nextButton.style.display = "none";
+      finishButton.style.display = "none";
+      timerElement.style.display = "none";
+      resultElement.style.display = "block";
+      resultElement.textContent = `আপনার স্কোর: ${score} / ${quizData.reduce((sum, q) => sum + q.marks, 0)}`;
+    }
+
+    // Event listeners
+    nextButton.addEventListener("click", handleNext);
+    finishButton.addEventListener("click", showResult);
+
+    // Initialize quiz
+    loadQuestion();
+  </script>
+</body>
+</html>
