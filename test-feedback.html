@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 90%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-box {
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 400px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 10px;
+      background-color: #f9f9f9;
+      display: none;
+    }
+
+    #response {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+
+    #send {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #send:hover {
+      background-color: #0056b3;
+    }
+
+    .message {
+      margin-bottom: 10px;
+    }
+
+    .message.bot {
+      color: #555;
+    }
+
+    .message.user {
+      color: #007bff;
+      text-align: right;
+    }
+
+    .emoji-rating {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .emoji {
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .multiple-choice {
+      margin-top: 10px;
+    }
+
+    .multiple-choice label {
+      display: block;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+
+    .multiple-choice input[type="checkbox"] {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div id="chat-box" class="chat-box"></div>
+    <div id="user-input" class="input-container">
+      <input type="text" id="response" placeholder="আপনার উত্তর লিখুন..." />
+      <button id="send">পাঠান</button>
+    </div>
+  </div>
+  <script>
+    const questions = [
+      { type: "rating", text: "আপনার অভিজ্ঞতা কেমন ছিল? (১-৫ রেটিং দিন)" },
+      { type: "text", text: "আপনার পরামর্শ লিখুন।" },
+      { type: "multiple", text: "আপনার পছন্দের সেবা চিহ্নিত করুন:", options: ["পরামর্শ", "ডায়াগনস্টিক", "চিকিৎসা", "ফলো-আপ"] },
+      { type: "text", text: "আপনার আবার আসার সম্ভাবনা কেমন?" }
+    ];
+
+    const emojis = ["😡", "😟", "😐", "😊", "😍"];
+    let currentQuestion = 0;
+
+    const chatBox = document.getElementById("chat-box");
+    const responseInput = document.getElementById("response");
+    const sendButton = document.getElementById("send");
+
+    function displayMessage(message, sender = "bot") {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", sender);
+      msgDiv.innerText = message;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function displayEmojis() {
+      const emojiContainer = document.createElement("div");
+      emojiContainer.classList.add("emoji-rating");
+      emojis.forEach((emoji, index) => {
+        const emojiDiv = document.createElement("div");
+        emojiDiv.classList.add("emoji");
+        emojiDiv.innerText = emoji;
+        emojiDiv.addEventListener("click", () => handleEmojiClick(index + 1));
+        emojiContainer.appendChild(emojiDiv);
+      });
+      chatBox.appendChild(emojiContainer);
+    }
+
+    function displayMultipleChoice(options) {
+      const container = document.createElement("div");
+      container.classList.add("multiple-choice");
+      options.forEach(option => {
+        const label = document.createElement("label");
+        label.innerHTML = `<input type="checkbox" value="${option}"> ${option}`;
+        container.appendChild(label);
+      });
+      chatBox.appendChild(container);
+      const submitButton = document.createElement("button");
+      submitButton.innerText = "নিশ্চিত করুন";
+      submitButton.addEventListener("click", () => handleMultipleChoice(container));
+      chatBox.appendChild(submitButton);
+    }
+
+    function handleEmojiClick(rating) {
+      displayMessage(`আপনার রেটিং: ${rating}/5`, "user");
+      nextQuestion();
+    }
+
+    function handleMultipleChoice(container) {
+      const selectedOptions = Array.from(container.querySelectorAll("input:checked")).map(input => input.value);
+      if (selectedOptions.length > 0) {
+        displayMessage(`আপনার পছন্দ: ${selectedOptions.join(", ")}`, "user");
+        nextQuestion();
+      } else {
+        alert("অনুগ্রহ করে অন্তত একটি অপশন নির্বাচন করুন।");
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQuestion < questions.length) {
+        setTimeout(() => {
+          const question = questions[currentQuestion];
+          displayMessage(question.text);
+          if (question.type === "rating") {
+            displayEmojis();
+          } else if (question.type === "text") {
+            document.getElementById("user-input").style.display = "flex";
+          } else if (question.type === "multiple") {
+            displayMultipleChoice(question.options);
+          }
+          currentQuestion++;
+        }, 500);
+      } else {
+        displayMessage("ধন্যবাদ আপনার মতামতের জন্য!");
+        document.getElementById("user-input").style.display = "none";
+      }
+    }
+
+    sendButton.addEventListener("click", () => {
+      const userInput = responseInput.value.trim();
+      if (userInput) {
+        displayMessage(userInput, "user");
+        responseInput.value = "";
+        nextQuestion();
+      }
+    });
+
+    // Start chat
+    nextQuestion();
+  </script>
+</body>
+</html>
